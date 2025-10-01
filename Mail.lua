@@ -363,9 +363,33 @@ function hook.GetContainerItemInfo(bag, slot)
 end
 
 function hook.PickupContainerItem(bag, slot)
-	if SendMail_Attached(bag, slot) then return end
-	if GetContainerItemInfo(bag, slot) then SetCursorItem{bag, slot} end
-	return orig.PickupContainerItem(bag, slot)
+    if SendMail_Attached(bag, slot) then
+        if arg1 == "RightButton" and MailFrame:IsVisible() then
+            for i = 1, ATTACHMENTS_MAX do
+                local btn = _G["MailAttachment"..i]
+                if btn.item and btn.item[1] == bag and btn.item[2] == slot then
+                    btn.item = nil
+                    orig.PickupContainerItem(bag, slot)
+                    ClearCursor()
+                    SendMailFrame_Update()
+                    return
+                end
+            end
+        end
+        return orig.PickupContainerItem(bag, slot)
+    end
+
+    if GetContainerItemInfo(bag, slot) then
+        if arg1 == "RightButton" and MailFrame:IsVisible() then
+            MailFrameTab_OnClick(2)
+            SendMail_SetAttachment{bag, slot}
+            return
+        else
+            SetCursorItem{bag, slot}
+        end
+    end
+
+    return orig.PickupContainerItem(bag, slot)
 end
 
 function hook.SplitContainerItem(bag, slot, amount)
