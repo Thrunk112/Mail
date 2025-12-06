@@ -173,11 +173,18 @@ end
 
 function Inbox_Load()
 	local btn = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
-	btn:SetPoint('BOTTOM', -10, 90)
-	btn:SetText(OPENMAIL)
-	btn:SetWidth(max(120, 30 + ({btn:GetRegions()})[1]:GetStringWidth()))
+	btn:SetPoint('BOTTOM', -50, 90)
+	btn:SetText("Open AH")
+	btn:SetWidth(70)
 	btn:SetHeight(25)
 	btn:SetScript('OnClick', Inbox_OpenAll)
+	
+	local btn2 = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
+	btn2:SetPoint('BOTTOM', 30, 90) 
+	btn2:SetText("Open All")
+	btn2:SetWidth(70)
+	btn2:SetHeight(25)
+	btn2:SetScript('OnClick', Inbox_OpenAll_NoFilter)
 end
 
 do
@@ -187,10 +194,10 @@ do
 	f:SetScript('OnUpdate', function()
 		if update then
 			update = false
-			local _, _, _, _, _, COD, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
+			local _, _,sender, _, _, COD, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
 			if i > GetInboxNumItems() then
 				Inbox_Abort()
-			elseif Inbox_Skip or COD > 0 or isGM then
+			elseif Inbox_Skip or COD > 0 or isGM or sender ~="Stormwind Auction House" then
 				Inbox_Skip = false
 				i = i + 1
 				update = true
@@ -217,6 +224,54 @@ do
 		Inbox_UpdateLock()
 		f:Hide()
 	end
+end
+
+do
+    local i2, update2
+    local f2 = CreateFrame("Frame")
+    f2:Hide()
+    f2:SetScript("OnUpdate", function()
+        if update2 then
+            update2 = false
+
+            if i2 > GetInboxNumItems() then
+                Inbox_Abort2()
+            else
+                local _, _, _, _, _, COD, _, _, _, _, _, _, isGM =
+                    GetInboxHeaderInfo(i2)
+
+                if COD > 0 or isGM then
+                    i2 = i2 + 1
+                    update2 = true
+                else
+                    Inbox_Open(i2)
+                end
+            end
+        end
+    end)
+
+    local prev_MAIL_INBOX_UPDATE = MAIL_INBOX_UPDATE
+    function MAIL_INBOX_UPDATE()
+        if prev_MAIL_INBOX_UPDATE then prev_MAIL_INBOX_UPDATE() end
+        if Inbox_opening then
+            update2 = true
+        end
+    end
+
+    function Inbox_OpenAll_NoFilter()
+        Inbox_opening = true
+        Inbox_UpdateLock()
+        i2 = 1
+        Inbox_skip = false
+        update2 = true
+        f2:Show()
+    end
+
+    function Inbox_Abort2()
+        Inbox_opening = false
+        Inbox_UpdateLock()
+        f2:Hide()
+    end
 end
 
 do
