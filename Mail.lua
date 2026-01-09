@@ -171,6 +171,22 @@ do
 	end)
 end
 
+local startGold = 0
+
+local function PrintGoldGained()
+	if not Inbox_opening then return end
+    local now = GetMoney()
+    local diff = now - startGold
+    if diff > 0 then
+        local g = floor(diff / (100*100))
+        local s = floor((diff - g*100*100) / 100)
+        local c = diff - g*100*100 - s*100
+        DEFAULT_CHAT_FRAME:AddMessage(string.format("Collected %dg %ds %dc from Mail", g, s, c), 0.41, .8, .94)
+		startGold = now
+    end
+end
+
+
 function Inbox_Load()
 	local btn = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
 	btn:SetPoint('BOTTOM', -50, 90)
@@ -212,6 +228,7 @@ do
 		end
 	end
 	function Inbox_OpenAll()
+		startGold = GetMoney()
 		Inbox_opening = true
 		Inbox_UpdateLock()
 		i = 1
@@ -220,6 +237,7 @@ do
 		f:Show()
 	end
 	function Inbox_Abort()
+		PrintGoldGained()
 		Inbox_opening = false
 		Inbox_UpdateLock()
 		f:Hide()
@@ -259,6 +277,7 @@ do
     end
 
     function Inbox_OpenAll_NoFilter()
+		startGold = GetMoney()
         Inbox_opening = true
         Inbox_UpdateLock()
         i2 = 1
@@ -268,6 +287,7 @@ do
     end
 
     function Inbox_Abort2()
+		PrintGoldGained()
         Inbox_opening = false
         Inbox_UpdateLock()
         f2:Hide()
